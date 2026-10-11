@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Xtream IPTV Player</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#10131c;color:white;font-family:Arial,sans-serif;padding:24px}
+h1{text-align:center;color:#58a6ff;margin-top:30px}
+p{text-align:center;color:#aaa}
+.card{max-width:420px;margin:35px auto;background:#1c2230;padding:24px;border-radius:16px}
+input,button{width:100%;padding:14px;margin:9px 0;border-radius:8px;border:1px solid #414b60;font-size:16px}
+input{background:#111722;color:white}
+button{background:#2878f0;color:white;border:0;font-weight:bold}
+.menu{display:grid;grid-template-columns:1fr;gap:14px}
+.menu button{padding:22px;font-size:18px}
+.small{font-size:12px;color:#888;text-align:center}
+</style>
+</head>
+<body>
+<h1>XTREAM IPTV</h1>
+<p>Your entertainment player</p>
+
+<div class="card" id="login">
+<h2>Sign In</h2>
+<form id="loginForm">
+<input id="server" placeholder="Server URL (http://...)" required>
+<input id="username" placeholder="Username" required>
+<input id="password" type="password" placeholder="Password" required>
+<button type="submit">LOGIN</button>
+</form>
+<p class="small">Use your own authorized IPTV service details.</p>
+</div>
+
+<div class="card" id="home" hidden>
+<h2>Welcome!</h2>
+<div class="menu">
+<button onclick="openSection('Live TV')">📺 Live TV</button>
+<button onclick="openSection('Movies')">🎬 Movies</button>
+<button onclick="openSection('Series')">📂 Series</button>
+</div>
+<p id="status"></p>
+<button onclick="logout()">Logout</button>
+</div>
+
+<script>
+const login=document.getElementById('login');
+const home=document.getElementById('home');
+
+document.getElementById('loginForm').addEventListener('submit',async function(e){
+e.preventDefault();
+const server=document.getElementById('server').value.trim().replace(/\/+$/,'');
+const username=document.getElementById('username').value.trim();
+const password=document.getElementById('password').value;
+
+if(!/^https?:\/\//i.test(server)){
+alert('Please enter a valid server URL starting with http:// or https://');
+return;
+}
+try{
+const url=server+'/player_api.php?username='+encodeURIComponent(username)+'&password='+encodeURIComponent(password);
+const response=await fetch(url);
+if(!response.ok) throw new Error('Connection failed');
+const data=await response.json();
+if(!data.user_info || data.user_info.auth!=1) throw new Error('Login not accepted');
+login.hidden=true;
+home.hidden=false;
+document.getElementById('status').textContent='Connected successfully.';
+}catch(err){
+alert('Could not connect or login. Check your server details and service CORS support.');
+}
+});
+
+function openSection(section){
+document.getElementById('status').textContent=section+' selected. Content loading will be added next.';
+}
+function logout(){
+home.hidden=true;
+login.hidden=false;
+document.getElementById('loginForm').reset();
+}
+</script>
+</body>
+</html>
